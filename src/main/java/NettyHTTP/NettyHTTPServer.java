@@ -16,7 +16,6 @@ public class NettyHTTPServer {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new HTTPServerInitializer());
             Channel ch = b.bind(port).sync().channel();
             System.err.println("Server is listening on http://127.0.0.1:" + port + '/');
