@@ -1,5 +1,6 @@
 package NettyHTTP;
 
+import CouchDB.CouchDBClientSingleton;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -8,11 +9,9 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
+import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.channels.FileChannel;
 
 import static io.netty.handler.codec.http.HttpMethod.POST;
@@ -70,12 +69,19 @@ public class HTTPUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                             System.out.println("Created file: " + file);
 
-                            try (FileChannel inputChannel = new FileInputStream(fileUpload.getFile()).getChannel();
-                                 FileChannel outputChannel = new FileOutputStream(file).getChannel()
+                            try (
+                                    FileChannel inputChannel = new FileInputStream(fileUpload.getFile()).getChannel();
+                                    FileChannel outputChannel = new FileOutputStream(file).getChannel()
                             ) {
+                                String url = CouchDBClientSingleton.getInstance().createAttachment(
+                                        fileUpload.getContentType(),
+                                        new FileInputStream(fileUpload.getFile())
+                                );
+
                                 outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
-                                sendResponse(ctx, CREATED, "file name: " + file.getAbsolutePath());
+                                sendResponse(ctx, CREATED, url);
                             }
+
                             break;
                     }
                 } finally {
@@ -86,23 +92,16 @@ public class HTTPUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
     private static void sendResponse(ChannelHandlerContext ctx, HttpResponseStatus status, String message) {
-        final FullHttpResponse response;
-        String msgDesc = message;
+        JSONObject data = new JSONObject();
+        data.put("url", message);
 
-        if (message == null) {
-            msgDesc = "Failure: " + status;
-        }
+        JSONObject outgoingJSON = new JSONObject();
+        outgoingJSON.put("error", JSONObject.NULL);
+        outgoingJSON.put("data", data);
 
-        msgDesc += " \r\n";
-        final ByteBuf buffer = Unpooled.copiedBuffer(msgDesc, CharsetUtil.UTF_8);
-
-        if (status.code() >= HttpResponseStatus.BAD_REQUEST.code()) {
-            response = new DefaultFullHttpResponse(HTTP_1_1, status, buffer);
-        } else {
-            response = new DefaultFullHttpResponse(HTTP_1_1, status, buffer);
-        }
-
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+        ByteBuf content = Unpooled.copiedBuffer(outgoingJSON.toString(), CharsetUtil.UTF_8);
+        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, content);
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 

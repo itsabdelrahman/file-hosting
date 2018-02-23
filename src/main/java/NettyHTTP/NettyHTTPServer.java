@@ -1,12 +1,13 @@
 package NettyHTTP;
 
+import CouchDB.CouchDBClientSingleton;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
+
+import java.io.IOException;
 
 public class NettyHTTPServer {
     public static void start(int port) {
@@ -28,7 +29,8 @@ public class NettyHTTPServer {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        CouchDBClientSingleton.getInstance().connect();
         NettyHTTPServer.start(8080);
     }
 }
