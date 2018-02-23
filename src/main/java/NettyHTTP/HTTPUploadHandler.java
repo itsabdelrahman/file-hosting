@@ -12,7 +12,6 @@ import io.netty.util.CharsetUtil;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.nio.channels.FileChannel;
 
 import static io.netty.handler.codec.http.HttpMethod.POST;
 import static io.netty.handler.codec.http.HttpResponseStatus.CREATED;
@@ -21,7 +20,6 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class HTTPUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(true);
-    private static final String FILE_UPLOAD_PATH = "";
     private HttpRequest httpRequest;
     private HttpPostRequestDecoder httpDecoder;
 
@@ -61,27 +59,13 @@ public class HTTPUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
                             break;
                         case FileUpload:
                             final FileUpload fileUpload = (FileUpload) data;
-                            final File file = new File(FILE_UPLOAD_PATH + fileUpload.getFilename());
 
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
+                            String url = CouchDBClientSingleton.getInstance().createAttachment(
+                                    fileUpload.getContentType(),
+                                    new FileInputStream(fileUpload.getFile())
+                            );
 
-                            System.out.println("Created file: " + file);
-
-                            try (
-                                    FileChannel inputChannel = new FileInputStream(fileUpload.getFile()).getChannel();
-                                    FileChannel outputChannel = new FileOutputStream(file).getChannel()
-                            ) {
-                                String url = CouchDBClientSingleton.getInstance().createAttachment(
-                                        fileUpload.getContentType(),
-                                        new FileInputStream(fileUpload.getFile())
-                                );
-
-                                outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
-                                sendResponse(ctx, CREATED, url);
-                            }
-
+                            sendResponse(ctx, CREATED, url);
                             break;
                     }
                 } finally {
