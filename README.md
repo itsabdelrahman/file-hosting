@@ -13,9 +13,9 @@
 
 ## Usage
 
+- `❯ echo HOST_PORTAL_DIR=/path/to/uploads/directory > .env`
 - `❯ docker-compose up`
 - `❯ yarn && yarn start`
-- `❯ echo HOST_PORTAL_DIR=/path/to/uploads/directory > .env`
 
 ## API
 
