@@ -15,7 +15,7 @@
 
 - `❯ docker-compose up`
 - `❯ yarn && yarn start`
-- `❯ echo HOST_PORTAL_DIR=/path/to/host/portal/directory > .env`
+- `❯ echo HOST_PORTAL_DIR=/path/to/uploads/directory > .env`
 
 ## API
 
