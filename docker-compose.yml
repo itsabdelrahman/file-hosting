@@ -1,0 +1,32 @@
+version: '2'
+services:
+  mfsmaster:
+    image: moosefs/master
+    container_name: "mfsmaster"
+    ports:
+      - "8082:9425"
+  mfsclient:
+    image: moosefs/client
+    container_name: "mfsclient"
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse:/dev/fuse
+    security_opt:
+      - apparmor:unconfined
+    stdin_open: true
+    tty: true
+    links:
+      - mfsmaster
+    volumes:
+      - ${HOST_PORTAL_DIR}:/mnt/mfs
+  mfschunkserver1:
+    image: moosefs/chunkserver
+    container_name: "mfschunkserver1"
+    links:
+      - mfsmaster
+  mfschunkserver2:
+    image: moosefs/chunkserver
+    container_name: "mfschunkserver2"
+    links:
+      - mfsmaster
