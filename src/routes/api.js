@@ -1,10 +1,15 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { accessFile } from '../utilities';
+import { accessFile, generateFileId } from '../utilities';
 
 export default () => {
   const api = Router();
-  const upload = multer({ dest: process.env.HOST_PORTAL_DIR });
+  const upload = multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => cb(null, process.env.HOST_PORTAL_DIR),
+      filename: (req, file, cb) => cb(null, generateFileId(file.mimetype)),
+    }),
+  });
 
   api.get('/media/:id', async (req, res) => {
     const filePath = `${process.env.HOST_PORTAL_DIR}/${req.params.id}`;
