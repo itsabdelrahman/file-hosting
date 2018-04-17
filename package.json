@@ -1,6 +1,6 @@
 {
   "name": "file-hosting",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "File hosting on dockerized MooseFS",
   "scripts": {
     "start": "node index.js",
