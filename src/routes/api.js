@@ -11,7 +11,7 @@ export default () => {
     }),
   });
 
-  api.get('/media/:id', async (req, res) => {
+  api.get('/file/:id', async (req, res) => {
     const filePath = `${process.env.HOST_PORTAL_DIR}/${req.params.id}`;
     const doesFileExist = await accessFile(filePath);
 
@@ -27,7 +27,7 @@ export default () => {
     return res.sendFile(filePath);
   });
 
-  api.post('/media', upload.single('file'), (req, res) => {
+  api.post('/file', upload.single('file'), (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         error: {
@@ -37,7 +37,7 @@ export default () => {
       });
     }
 
-    return res.json({
+    return res.status(201).json({
       error: null,
       data: {
         id: req.file.filename,
